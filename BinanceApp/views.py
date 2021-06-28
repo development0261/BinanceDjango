@@ -46,7 +46,7 @@ def get_coin_price(request):
     coin_price = []
     for i in range(len(klines)-1,len(klines)-50,-1):
         coin_data = dict()
-        coin_data['TimeStamp'] = datetime.datetime.fromtimestamp(klines[i][0] / 1000.0)
+        coin_data['TimeStamp'] = datetime.datetime.fromtimestamp(klines[i][0] / 1000.0).strftime("%b %d %Y %H:%M:%S")
         coin_data['Price'] = klines[i][1]
         coin_price.append(coin_data)
 
