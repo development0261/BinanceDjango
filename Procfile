@@ -1,0 +1,1 @@
+web: gunicorn BinanceDjango.wsgi --log-file -
