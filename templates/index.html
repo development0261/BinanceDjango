@@ -100,7 +100,7 @@
         $(document).on('click',"#get_price",function (){
             var coin =  $("#coins").find('option:selected').text();
             var interval =  $("#interval").find('option:selected').val();
-            alert(interval)
+            
             $.ajax({
                     type: 'POST',
                     url: '/get_coin_price/',
