@@ -12,20 +12,23 @@
 
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <div class="container">
     <h2 class="main-title text-center my-2">
-    Welcome to Binance Scanner
+    <i class="fa fa-btc" aria-hidden="true"></i> Binance Scanner
 </h2>
 
 
-<div class="coin-form">
-    <h3 class="choice-title text-center my-2">
-        Choose your coin and Time Interval
+<div class="coin-form mt-4">
+    <h3 class="choice-title text-center my-2" style="font-size: 1.2rem">
+        Choose From Crypto Coins whose 7 DMA is Greater Than 25 DMA
     </h3>
-    <div class="row d-flex justify-content-center">
+    <div class="row d-flex justify-content-center mt-4">
         <div class="col-md-6 col-lg-6 col-sm-10 col-xs-10 " >
               <form>{% csrf_token %}
 
@@ -33,13 +36,15 @@
                  <div class="form-group">
                     <label for="coins">Select Crypto Coin</label>
                     <select class="form-control" id="coins" name="coin_name">
-                        {% for coins in crypto_coins %}
-                            <option value="{{ coins }}">{{ coins }}</option>
-                        {% endfor %}
+
                     </select>
+                     <div id="loader">
+                        <div class="spinner-border text-primary" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
                   </div>
 
-                 <div class="form-group">
+                 <div class="form-group mt-3">
                     <label for="coins">Select Time Interval</label>
                     <select class="form-control" id="interval" name="interval" >
                       <option value="1Hour">1 Hour</option>
@@ -51,13 +56,19 @@
                   </div>
 
 
-              <button type="button" id="get_price" class="btn btn-primary">Submit</button>
+              <div class="d-flex justify-content-center">
+                  <button type="button" id="get_price" class="btn btn-warning" style="width: 100%">Submit</button>
+              </div>
             </form>
         </div>
     </div>
 </div>
 
- <table id="example" class="table table-striped table-bordered mt-2" style="width:100%" >
+ <div class="interval-data mt-2" id="Coin_Interval_data">
+     <h3 style="font-size: 1.2rem;font-weight: bold;display: none" id="table-title" class="text-center my-3">
+
+     </h3>
+     <table id="coin_table" class="table table-striped table-bordered mt-5" style="width:100%" >
         <thead>
             <tr>
                 <th>Sr. No.</th>
@@ -66,13 +77,15 @@
 
             </tr>
         </thead>
-        <tbody id="coin_table">
+        <tbody id="coin_table_body">
 
         </tbody>
 </table>
+ </div>
 
 </div>
 
+</div>
  <script
   src="https://code.jquery.com/jquery-3.4.1.js"
   integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
@@ -93,7 +106,44 @@
 <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.colVis.min.js"></script>
     <script>
-        
+
+          document.onreadystatechange = function() {
+
+        };
+
+         $("#coin_table").DataTable({
+                            responsive: true,
+                            "scrollX": true,
+
+                        })
+        $(document).ready(function () {
+            $.ajax(
+                {
+                    type: 'GET',
+                    url: '/get_coins/',
+                    success: function (data) {
+
+                        if (data.msg === "Success") {
+                             document.querySelector(
+                              "#loader").style.display = "none";
+                            document.querySelector(
+                              "body").style.visibility = "visible";
+
+                            var coins_data= data.coins
+                            for(var i=0;i<coins_data.length;i++)
+                            {
+                                $("#coins").append(
+                                `
+                                    <option value="${coins_data[i]}">${coins_data[i]}</option>
+                                `
+                            )
+                            }
+                        }
+
+                    },
+                }
+            )
+        })
         $(document).on('click',"#get_price",function (){
             var coin =  $("#coins").find('option:selected').text();
             var interval =  $("#interval").find('option:selected').val();
@@ -109,9 +159,10 @@
                     success: function (data) {
 
                         if (data.msg === "Success") {
-                            $("#coin_table").empty()
+                            console.log(data.coin_prices)
+                            $("#coin_table_body").empty()
                             for (let i = 0; i < data.coin_prices.length; i++) {
-                                $("#coin_table").append(`
+                                $("#coin_table_body").append(`
                                     <tr>
                                          <td>
                                                 ${i + 1}
@@ -125,12 +176,20 @@
                                     </tr>
                                 `)
                             }
-
+                        $("#table-title").html(
+                            `
+                                Price of ${coin} for selected ${interval} Interval
+                            `
+                        )
+                             $("#table-title").css('display','block')
                         }
 
                     },
                 });
         })
+
+
+
 
     </script>
 
