@@ -1,3 +1,9 @@
 body{
     font-family: 'Merriweather', serif !important;
 }
+
+div#loader {
+    position: absolute;
+    right: -24px;
+    top: 35px;
+}

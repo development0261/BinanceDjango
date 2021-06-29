@@ -19,7 +19,7 @@ one_week_ago = one_week_ago.strftime("%d %b, %Y")
 days_25_ago = datetime.datetime.today().date() - datetime.timedelta(days=25)
 days_25_ago = days_25_ago.strftime("%d %b, %Y")
 
-
+klines = []
 crypto_list = []
 def worker(item):
     try:
@@ -38,8 +38,8 @@ def worker(item):
                 twentyfive_day_avg = np.mean(np_klines1, axis=0)
 
             if seven_day_avg[4] > twentyfive_day_avg[4]:
+                global crypto_list
                 crypto_list.append(item)
-
 
     except Exception as e:
         pass
@@ -79,15 +79,42 @@ def get_coin_price(request):
 
         kinterval = Client.KLINE_INTERVAL_1WEEK
 
+    global klines
+    klines = []
     klines = client.get_klines(symbol=coin, interval=kinterval)
+    klines = klines[::-1]
 
     coin_price = []
-    for i in range(len(klines)-1,len(klines)-51,-1):
+
+    for i in range(0,12):
         coin_data = dict()
         coin_data['TimeStamp'] = datetime.datetime.fromtimestamp(klines[i][0] / 1000.0).strftime("%b %d %Y %H:%M:%S")
         coin_data['Price'] = klines[i][1]
         coin_price.append(coin_data)
 
-
+    print(coin_price)
 
     return JsonResponse({'msg':'Success','coin_prices':coin_price})
+
+
+def load_more(request,num_posts):
+    global klines
+
+
+    lower =num_posts
+    upper = lower + 12
+
+    posts = []
+    for i in range(lower, upper):
+        coin_data = dict()
+        coin_data['TimeStamp'] = datetime.datetime.fromtimestamp(klines[i][0] / 1000.0).strftime("%b %d %Y %H:%M:%S")
+        coin_data['Price'] = klines[i][1]
+        posts.append(coin_data)
+
+    posts_size = len(klines)
+    max_size = True if upper >= posts_size else False
+    return JsonResponse({'data': posts, 'max': max_size}, safe=False)
+
+def load_more_view(request):
+    return render(request,"LoadMore.html")
+

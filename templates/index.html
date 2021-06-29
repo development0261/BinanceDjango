@@ -25,7 +25,7 @@
 
 
 <div class="coin-form mt-4">
-    <h3 class="choice-title text-center my-2" style="font-size: 1.2rem">
+    <h3 class="choice-title text-center my-2" style="font-size: 1.2rem;letter-spacing: 0.1rem">
         Choose From Crypto Coins whose 7 DMA is Greater Than 25 DMA
     </h3>
     <div class="row d-flex justify-content-center mt-4">
@@ -35,12 +35,14 @@
 
                  <div class="form-group">
                     <label for="coins">Select Crypto Coin</label>
-                    <select class="form-control" id="coins" name="coin_name">
+                    <div style="display: inline">
+                         <select class="form-control" id="coins" name="coin_name">
 
                     </select>
                      <div id="loader">
-                        <div class="spinner-border text-primary" role="status">
+                        <div class="spinner-border text-warning" role="status">
                       <span class="sr-only">Loading...</span>
+                    </div>
                     </div>
                   </div>
 
@@ -57,14 +59,15 @@
 
 
               <div class="d-flex justify-content-center">
-                  <button type="button" id="get_price" class="btn btn-warning" style="width: 100%">Submit</button>
+                  <button type="button" id="get_price" class="btn btn-warning" style="width: 100%" disabled>Submit</button>
               </div>
+                 </div>
             </form>
         </div>
     </div>
 </div>
 
- <div class="interval-data mt-2" id="Coin_Interval_data">
+ <div class="interval-data mt-2" id="Coin_Interval_data" style="display: none">
      <h3 style="font-size: 1.2rem;font-weight: bold;display: none" id="table-title" class="text-center my-3">
 
      </h3>
@@ -84,8 +87,23 @@
  </div>
 
 </div>
+<div class="container">
+    <div class="main_price_div">
 
+        <div class="row" id="price_data_row">
+           
+        </div>
+
+    </div>
 </div>
+
+   <div class="d-flex justify-content-center">
+        <div id="posts-box"></div>
+
+    <div id="loading-box">
+        <button class="btn btn-primary" id="load-btn" style="display:none;">Load more</button>
+    </div>
+   </div>
  <script
   src="https://code.jquery.com/jquery-3.4.1.js"
   integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
@@ -111,11 +129,13 @@
 
         };
 
-         $("#coin_table").DataTable({
+        $(document).ready(function (){
+             $("#coin_table").DataTable({
                             responsive: true,
                             "scrollX": true,
 
                         })
+        })
         $(document).ready(function () {
             $.ajax(
                 {
@@ -124,6 +144,8 @@
                     success: function (data) {
 
                         if (data.msg === "Success") {
+
+
                              document.querySelector(
                               "#loader").style.display = "none";
                             document.querySelector(
@@ -138,16 +160,19 @@
                                 `
                             )
                             }
+
+                            $("#get_price").attr('disabled',false)
                         }
 
                     },
                 }
             )
         })
+
         $(document).on('click',"#get_price",function (){
             var coin =  $("#coins").find('option:selected').text();
             var interval =  $("#interval").find('option:selected').val();
-
+            $("#price_data_row").empty()
             $.ajax({
                     type: 'POST',
                     url: '/get_coin_price/',
@@ -160,37 +185,92 @@
 
                         if (data.msg === "Success") {
                             console.log(data.coin_prices)
-                            $("#coin_table_body").empty()
+
                             for (let i = 0; i < data.coin_prices.length; i++) {
-                                $("#coin_table_body").append(`
-                                    <tr>
-                                         <td>
-                                                ${i + 1}
-                                        </td>
-                                        <td>
-                                                ${data.coin_prices[i].Price}
-                                        </td>
-                                           <td>
-                                                ${data.coin_prices[i].TimeStamp}
-                                        </td>
-                                    </tr>
-                                `)
+                               $("#price_data_row").append(
+                                   `
+                                     <div class="col-md-3 col-sm-10 col-xs-10 col-lg-3 p-3">
+                                        <div class="p-3" style="background-color:#10375d ; border:1px solid #000;border-radius: 5px">
+                                            <h4 style="font-size: 1rem;font-weight: bold;color: white">
+                                                Timestamp : <span style="font-size: 0.9rem;color: #fac654" id="time_val">
+                                                        ${data.coin_prices[i].TimeStamp}
+                                            </span>
+                                            </h4>
+
+                                            <h4 style="font-size: 1rem;font-weight: bold;color: white">
+                                                Price : <span style="font-size: 0.9rem;color: #fac654" id="price_val">
+                                                        ${data.coin_prices[i].Price}
+                                            </span>
+                                            </h4>
+                                        </div>
+                                    </div>
+                                   `
+                               )
                             }
                         $("#table-title").html(
                             `
                                 Price of ${coin} for selected ${interval} Interval
                             `
                         )
-                             $("#table-title").css('display','block')
+                            $("#load-btn").css('display','block')
+
                         }
 
                     },
                 });
         })
 
+            const postsBox = document.getElementById('posts-box')
+console.log(postsBox)
+const spinnerBox = document.getElementById('spinner-box')
+const loadBtn = document.getElementById('load-btn')
+const loadBox = document.getElementById('loading-box')
+let visible = 0
 
+        $(document).on('click','#load-btn',function (){
 
+             visible += 12
+             $.ajax({
+        type: 'GET',
+        url: `/load_more/${visible}/`,
+        success: function(response){
+            maxSize = response.max
+            const data = response.data
 
+            setTimeout(()=>{
+
+                data.map(post=>{
+                       $("#price_data_row").append(
+                                   `
+                                     <div class="col-md-3 col-sm-10 col-xs-10 col-lg-3 p-3">
+                                        <div class="p-3" style="background-color:#10375d ; border:1px solid #000;border-radius: 5px">
+                                            <h4 style="font-size: 1.1rem;font-weight: bold;color: white">
+                                                Timestamp : <span style="font-size: 0.9rem;color: #fac654" id="time_val">
+                                                        ${post.TimeStamp}
+                                            </span>
+                                            </h4>
+
+                                            <h4 style="font-size: 1.1rem;font-weight: bold;color: white">
+                                                Price : <span style="font-size: 0.9rem;color: #fac654" id="price_val">
+                                                        ${post.Price}
+                                            </span>
+                                            </h4>
+                                        </div>
+                                    </div>
+                                   `
+                               )
+                })
+                if(maxSize){
+                    console.log('done')
+                    loadBox.innerHTML = "<h4>No more posts to load</h4>"
+                }
+            }, 500)
+        },
+        error: function(error){
+            console.log(error)
+        }
+    })
+        })
     </script>
 
 
