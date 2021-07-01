@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 import numpy as np
 from multiprocessing.pool import ThreadPool as Pool
-
+import time
 pool_size = 8
 
 
@@ -59,7 +59,7 @@ def get_coins(request):
 
     pool.close()
     pool.join()
-
+    time.sleep(5)
     return JsonResponse({'msg':"Success","coins":crypto_list})
 
 def get_coin_price(request):
@@ -92,7 +92,7 @@ def get_coin_price(request):
         coin_data['Price'] = klines[i][1]
         coin_price.append(coin_data)
 
-    print(coin_price)
+
 
     return JsonResponse({'msg':'Success','coin_prices':coin_price})
 

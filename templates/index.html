@@ -67,43 +67,49 @@
     </div>
 </div>
 
- <div class="interval-data mt-2" id="Coin_Interval_data" style="display: none">
-     <h3 style="font-size: 1.2rem;font-weight: bold;display: none" id="table-title" class="text-center my-3">
+</div>
+<!-- <div class="container">
+    <div class="main_price_div">
 
-     </h3>
-     <table id="coin_table" class="table table-striped table-bordered mt-5" style="width:100%" >
+        <div class="row" id="price_data_row">
+
+        </div>
+
+    </div>
+</div>-->
+<div class="bs-example container my-2 " style="display: none">
+    <h4 id="searched_title" class="text-center" style="font-size: 1.2rem;letter-spacing: 0.2rem"> </h4>
+    <table class="table table-hover" id="coin-table">
         <thead>
             <tr>
                 <th>Sr. No.</th>
-                <th>Coin Price</th>
+                <th>Price</th>
                 <th>Timestamp</th>
 
             </tr>
         </thead>
-        <tbody id="coin_table_body">
+        <tbody id="coin_price_data">
+
 
         </tbody>
-</table>
- </div>
-
+    </table>
 </div>
-<div class="container">
-    <div class="main_price_div">
+   <div class="d-flex justify-content-center my-2">
+       <div id="loader" style="display: none">
+            <div class="spinner-grow text-warning"></div>
+           <div class="spinner-grow text-warning"></div>
+           <div class="spinner-grow text-warning"></div>
+           <div class="spinner-grow text-warning"></div>
+           <div class="spinner-grow text-warning"></div>
+       </div>
 
-        <div class="row" id="price_data_row">
-           
+        <div id="loading-box">
+            <button class="btn btn-primary" id="load-btn" style="display:none;">Load more</button>
         </div>
-
-    </div>
-</div>
-
-   <div class="d-flex justify-content-center">
-        <div id="posts-box"></div>
-
-    <div id="loading-box">
-        <button class="btn btn-primary" id="load-btn" style="display:none;">Load more</button>
-    </div>
    </div>
+
+<a href="#" id="scroll" style="display: none;"><span></span></a>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
  <script
   src="https://code.jquery.com/jquery-3.4.1.js"
   integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
@@ -161,10 +167,15 @@
                             )
                             }
 
-                            $("#get_price").attr('disabled',false)
+                                 $("#get_price").attr('disabled',false)
+
+
                         }
 
                     },
+                     error:function (){
+                        swal("Oops!", "Please Try After Some Seconds. It caused due to multiple requests, "warning");
+                    }
                 }
             )
         })
@@ -172,7 +183,7 @@
         $(document).on('click',"#get_price",function (){
             var coin =  $("#coins").find('option:selected').text();
             var interval =  $("#interval").find('option:selected').val();
-            $("#price_data_row").empty()
+            $("#coin_price_data").empty()
             $.ajax({
                     type: 'POST',
                     url: '/get_coin_price/',
@@ -184,39 +195,32 @@
                     success: function (data) {
 
                         if (data.msg === "Success") {
-                            console.log(data.coin_prices)
 
+                            $("#searched_title").html(`List of ${coin} Price for interval of ${interval} `)
+                            $(".bs-example").css('display','block')
                             for (let i = 0; i < data.coin_prices.length; i++) {
-                               $("#price_data_row").append(
+                                var row_id = $('#coin-table tr').length;
+                               $("#coin_price_data").append(
                                    `
-                                     <div class="col-md-3 col-sm-10 col-xs-10 col-lg-3 p-3">
-                                        <div class="p-3" style="background-color:#10375d ; border:1px solid #000;border-radius: 5px">
-                                            <h4 style="font-size: 1rem;font-weight: bold;color: white">
-                                                Timestamp : <span style="font-size: 0.9rem;color: #fac654" id="time_val">
-                                                        ${data.coin_prices[i].TimeStamp}
-                                            </span>
-                                            </h4>
+                                     <tr>
+                                        <td>${row_id}</td>
+                                        <td>${data.coin_prices[i].Price}</td>
+                                        <td>${data.coin_prices[i].TimeStamp}</td>
 
-                                            <h4 style="font-size: 1rem;font-weight: bold;color: white">
-                                                Price : <span style="font-size: 0.9rem;color: #fac654" id="price_val">
-                                                        ${data.coin_prices[i].Price}
-                                            </span>
-                                            </h4>
-                                        </div>
-                                    </div>
+                                    </tr>
+
                                    `
                                )
                             }
-                        $("#table-title").html(
-                            `
-                                Price of ${coin} for selected ${interval} Interval
-                            `
-                        )
+
                             $("#load-btn").css('display','block')
 
                         }
 
                     },
+                error:function (){
+                       swal("Oops!", "Please Try After Some Seconds. It caused due to multiple requests", "warning");
+                }
                 });
         })
 
@@ -228,7 +232,7 @@ const loadBox = document.getElementById('loading-box')
 let visible = 0
 
         $(document).on('click','#load-btn',function (){
-
+            $("#loader").css('display','block')
              visible += 12
              $.ajax({
         type: 'GET',
@@ -240,37 +244,47 @@ let visible = 0
             setTimeout(()=>{
 
                 data.map(post=>{
-                       $("#price_data_row").append(
+                    var row_id = $('#coin-table tr').length;
+                       $("#coin_price_data").append(
                                    `
-                                     <div class="col-md-3 col-sm-10 col-xs-10 col-lg-3 p-3">
-                                        <div class="p-3" style="background-color:#10375d ; border:1px solid #000;border-radius: 5px">
-                                            <h4 style="font-size: 1.1rem;font-weight: bold;color: white">
-                                                Timestamp : <span style="font-size: 0.9rem;color: #fac654" id="time_val">
-                                                        ${post.TimeStamp}
-                                            </span>
-                                            </h4>
+                                    <tr>
+                                        <td>${row_id}</td>
+                                        <td>${post.Price}</td>
+                                        <td>${post.TimeStamp}</td>
 
-                                            <h4 style="font-size: 1.1rem;font-weight: bold;color: white">
-                                                Price : <span style="font-size: 0.9rem;color: #fac654" id="price_val">
-                                                        ${post.Price}
-                                            </span>
-                                            </h4>
-                                        </div>
-                                    </div>
+                                    </tr>
                                    `
                                )
                 })
                 if(maxSize){
                     console.log('done')
-                    loadBox.innerHTML = "<h4>No more posts to load</h4>"
+                    loadBox.innerHTML = "<h4>No more Data to load</h4>"
                 }
             }, 500)
+
+            $("#loader").css('display','none')
         },
         error: function(error){
             console.log(error)
         }
     })
         })
+
+
+
+          $(document).ready(function(){
+    $(window).scroll(function(){
+        if ($(this).scrollTop() > 100) {
+            $('#scroll').fadeIn();
+        } else {
+            $('#scroll').fadeOut();
+        }
+    });
+    $('#scroll').click(function(){
+        $("html, body").animate({ scrollTop: 0 }, 600);
+        return false;
+    });
+});
     </script>
 
 
