@@ -53,13 +53,18 @@ def index(request):
 
 def get_coins(request):
     exchange_info = client.get_exchange_info()
+
     pool = Pool(pool_size)
-    for item in exchange_info['symbols']:
+
+    symbols = exchange_info['symbols'][:800]
+
+    for item in symbols:
         pool.apply_async(worker, (item['symbol'],))
+
 
     pool.close()
     pool.join()
-    
+
     return JsonResponse({'msg':"Success","coins":crypto_list})
 
 def get_coin_price(request):
