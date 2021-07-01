@@ -59,7 +59,7 @@ def get_coins(request):
 
     pool.close()
     pool.join()
-    time.sleep(5)
+    
     return JsonResponse({'msg':"Success","coins":crypto_list})
 
 def get_coin_price(request):
