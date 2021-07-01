@@ -204,6 +204,7 @@
                                 var row_id = $('#coin-table tr').length;
                                $("#coin_price_data").append(
                                    `
+
                                      <tr>
                                         <td>${row_id}</td>
                                         <td>${data.coin_prices[i].Price}</td>
@@ -253,8 +254,8 @@ let visible = 0
                                         <td>${row_id}</td>
                                         <td>${post.Price}</td>
                                         <td>${post.TimeStamp}</td>
-
                                     </tr>
+
                                    `
                                )
                 })
@@ -274,7 +275,7 @@ let visible = 0
 
 
 
-          $(document).ready(function(){
+$(document).ready(function(){
     $(window).scroll(function(){
         if ($(this).scrollTop() > 100) {
             $('#scroll').fadeIn();
