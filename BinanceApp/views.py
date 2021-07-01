@@ -105,11 +105,15 @@ def load_more(request,num_posts):
     upper = lower + 12
 
     posts = []
-    for i in range(lower, upper):
-        coin_data = dict()
-        coin_data['TimeStamp'] = datetime.datetime.fromtimestamp(klines[i][0] / 1000.0).strftime("%b %d %Y %H:%M:%S")
-        coin_data['Price'] = klines[i][1]
-        posts.append(coin_data)
+    try:
+        for i in range(lower, upper):
+            coin_data = dict()
+            coin_data['TimeStamp'] = datetime.datetime.fromtimestamp(klines[i][0] / 1000.0).strftime(
+                "%b %d %Y %H:%M:%S")
+            coin_data['Price'] = klines[i][1]
+            posts.append(coin_data)
+    except:
+        pass
 
     posts_size = len(klines)
     max_size = True if upper >= posts_size else False
