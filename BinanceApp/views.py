@@ -55,11 +55,13 @@ def get_coins(request):
     exchange_info = client.get_exchange_info()
 
     pool = Pool(pool_size)
-
-    symbols = exchange_info['symbols'][:800]
-
-    for item in symbols:
-        pool.apply_async(worker, (item['symbol'],))
+    print(exchange_info['symbols'][0])
+    symbols = []
+    for item in exchange_info['symbols']:
+        if str(item['quoteAsset']) == "USDT" or str(item['baseAsset']) == "USDT":
+            symbols.append(item['symbol'])
+    for item in symbols[:800]:
+        pool.apply_async(worker, (item,))
 
 
     pool.close()
