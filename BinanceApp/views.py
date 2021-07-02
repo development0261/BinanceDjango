@@ -100,7 +100,7 @@ def get_coin_price(request):
     pool = Pool(pool_size)
 
     symbols = []
-    for item in exchange_info['symbols'][:500]:
+    for item in exchange_info['symbols'][:900]:
         if str(item['quoteAsset']) == "USDT" or str(item['baseAsset']) == "USDT":
             symbols.append(item['symbol'])
     for item in symbols:
