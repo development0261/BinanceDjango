@@ -25,26 +25,12 @@
 
 
 <div class="coin-form mt-4">
-    <h3 class="choice-title text-center my-2" style="font-size: 1.2rem;letter-spacing: 0.1rem">
-        Choose From Crypto Coins whose 7 DMA is Greater Than 25 DMA
-    </h3>
+
     <div class="row d-flex justify-content-center mt-4">
         <div class="col-md-6 col-lg-6 col-sm-10 col-xs-10 " >
               <form>{% csrf_token %}
 
 
-                 <div class="form-group">
-                    <label for="coins">Select Crypto Coin</label>
-                    <div style="display: inline">
-                         <select class="form-control" id="coins" name="coin_name">
-
-                    </select>
-                     <div id="loader">
-                        <div class="spinner-border text-warning" role="status">
-                      <span class="sr-only">Loading...</span>
-                    </div>
-                    </div>
-                  </div>
 
                  <div class="form-group mt-3">
                     <label for="coins">Select Time Interval</label>
@@ -59,15 +45,18 @@
 
 
               <div class="d-flex justify-content-center">
-                  <button type="button" id="get_price" class="btn btn-warning" style="width: 100%" disabled>Submit</button>
+                  <button type="button" id="get_price" class="btn btn-warning" style="width: 100%">Submit</button>
               </div>
-                 </div>
+
             </form>
         </div>
     </div>
 </div>
-
 </div>
+
+
+
+
 <!-- <div class="container">
     <div class="main_price_div">
 
@@ -77,14 +66,18 @@
 
     </div>
 </div>-->
+
+<h4 class="text-center my-2" id="loader" style="display: none">Loading Coins ...</h4>
 <div class="bs-example container my-2 " style="display: none">
-    <h4 id="searched_title" class="text-center" style="font-size: 1.2rem;letter-spacing: 0.2rem"> </h4>
+
+
     <table class="table table-hover" id="coin-table">
         <thead>
             <tr>
                 <th>Sr. No.</th>
-                <th>Price</th>
-                <th>Timestamp</th>
+                <th>Coin Pair</th>
+                <th>7 DMA</th>
+                <th>25 DMA</th>
 
             </tr>
         </thead>
@@ -94,19 +87,14 @@
         </tbody>
     </table>
 </div>
-   <div class="d-flex justify-content-center my-2">
-       <div id="loader" style="display: none">
-            <div class="spinner-grow text-warning"></div>
-           <div class="spinner-grow text-warning"></div>
-           <div class="spinner-grow text-warning"></div>
-           <div class="spinner-grow text-warning"></div>
-           <div class="spinner-grow text-warning"></div>
-       </div>
+
+  <!-- <div class="d-flex justify-content-center my-2">
+
 
         <div id="loading-box">
             <button class="btn btn-primary" id="load-btn" style="display:none;">Load more</button>
         </div>
-   </div>
+   </div>-->
 
 <a href="#" id="scroll" style="display: none;"><span></span></a>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
@@ -142,50 +130,13 @@
 
                         })
         })
-        $(document).ready(function () {
-            $.ajax(
-                {
-                    type: 'GET',
-                    url: '/get_coins/',
-                    success: function (data) {
-
-                        if (data.msg === "Success") {
-
-
-                             document.querySelector(
-                              "#loader").style.display = "none";
-                            document.querySelector(
-                              "body").style.visibility = "visible";
-
-                            var coins_data= data.coins
-                            for(var i=0;i<coins_data.length;i++)
-                            {
-                                $("#coins").append(
-                                `
-                                    <option value="${coins_data[i]}">${coins_data[i]}</option>
-                                `
-                            )
-                            }
-                                setTimeout(function (){
-                                    $("#get_price").attr('disabled',false)
-                                },3000)
-
-
-
-                        }
-
-                    },
-                     error:function (){
-                        swal("Oops!", "Please Try After Some Seconds. It caused due to multiple requests", "warning");
-                    }
-                }
-            )
-        })
 
         $(document).on('click',"#get_price",function (){
             var coin =  $("#coins").find('option:selected').text();
             var interval =  $("#interval").find('option:selected').val();
             $("#coin_price_data").empty()
+            $("#loader").css('display','block')
+
             $.ajax({
                     type: 'POST',
                     url: '/get_coin_price/',
@@ -197,8 +148,8 @@
                     success: function (data) {
 
                         if (data.msg === "Success") {
+                             $("#loader").css('display','none')
 
-                            $("#searched_title").html(`List of ${coin} Price for interval of ${interval} `)
                             $(".bs-example").css('display','block')
                             for (let i = 0; i < data.coin_prices.length; i++) {
                                 var row_id = $('#coin-table tr').length;
@@ -207,8 +158,9 @@
 
                                      <tr>
                                         <td>${row_id}</td>
-                                        <td>${data.coin_prices[i].Price}</td>
-                                        <td>${data.coin_prices[i].TimeStamp}</td>
+                                        <td>${data.coin_prices[i].Coin}</td>
+                                        <td>${data.coin_prices[i].DMA_7}</td>
+                                        <td>${data.coin_prices[i].DMA_25}</td>
 
                                     </tr>
 
@@ -216,7 +168,6 @@
                                )
                             }
 
-                            $("#load-btn").css('display','block')
 
                         }
 
@@ -227,7 +178,9 @@
                 });
         })
 
-            const postsBox = document.getElementById('posts-box')
+           /*
+           *
+        const postsBox = document.getElementById('posts-box')
 console.log(postsBox)
 const spinnerBox = document.getElementById('spinner-box')
 const loadBtn = document.getElementById('load-btn')
@@ -252,8 +205,9 @@ let visible = 0
                                    `
                                     <tr>
                                         <td>${row_id}</td>
-                                        <td>${post.Price}</td>
-                                        <td>${post.TimeStamp}</td>
+                                        <td>${post.Coin}</td>
+                                        <td>${post.DMA_7}</td>
+                                        <td>${post.DMA_25}</td>
                                     </tr>
 
                                    `
@@ -274,6 +228,7 @@ let visible = 0
         })
 
 
+       * */
 
 $(document).ready(function(){
     $(window).scroll(function(){

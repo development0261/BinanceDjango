@@ -21,11 +21,13 @@ days_25_ago = days_25_ago.strftime("%d %b, %Y")
 
 klines = []
 crypto_list = []
-def worker(item):
+def worker(item,kinterval):
+
     try:
         if str(item).find('USDT')  != -1:
-            klines = client.get_historical_klines(item, Client.KLINE_INTERVAL_1DAY, one_week_ago)
-            klines1 = client.get_historical_klines(item, Client.KLINE_INTERVAL_1DAY, days_25_ago)
+
+            klines = client.get_historical_klines(item, kinterval, one_week_ago)
+            klines1 = client.get_historical_klines(item, kinterval, days_25_ago)
             seven_day_avg = 0
             twentyfive_day_avg= 0
             np_klines = np.array(klines).astype(float)
@@ -37,42 +39,49 @@ def worker(item):
             if not np.any(np.isnan(np_klines1)):
                 twentyfive_day_avg = np.mean(np_klines1, axis=0)
 
+
+            global crypto_list
+
+
             if seven_day_avg[4] > twentyfive_day_avg[4]:
-                global crypto_list
-                crypto_list.append(item)
+
+
+                crypto_list.append({
+                    'Coin':item,
+                    'DMA_7':seven_day_avg[4],
+                    'DMA_25':twentyfive_day_avg[4]
+                })
 
     except Exception as e:
         pass
-
-
-
 
 def index(request):
 
     return render(request,"index.html")
 
-def get_coins(request):
-    exchange_info = client.get_exchange_info()
-
-    pool = Pool(pool_size)
-    print(exchange_info['symbols'][0])
-    symbols = []
-    for item in exchange_info['symbols']:
-        if str(item['quoteAsset']) == "USDT" or str(item['baseAsset']) == "USDT":
-            symbols.append(item['symbol'])
-    for item in symbols[:800]:
-        pool.apply_async(worker, (item,))
-
-
-    pool.close()
-    pool.join()
-
-    return JsonResponse({'msg':"Success","coins":crypto_list})
+# def get_coins(request):
+#     exchange_info = client.get_exchange_info()
+#
+#     pool = Pool(pool_size)
+#     print(exchange_info['symbols'][0])
+#     symbols = []
+#     for item in exchange_info['symbols']:
+#         if str(item['quoteAsset']) == "USDT" or str(item['baseAsset']) == "USDT":
+#             symbols.append(item['symbol'])
+#     for item in symbols[:800]:
+#         pool.apply_async(worker, (item,))
+#
+#
+#     pool.close()
+#     pool.join()
+#
+#     return JsonResponse({'msg':"Success","coins":crypto_list})
 
 def get_coin_price(request):
 
-    coin = request.POST['coin']
+    global crypto_list
 
+    crypto_list = []
     interval = request.POST['interval']
 
     kinterval = ''
@@ -86,26 +95,43 @@ def get_coin_price(request):
 
         kinterval = Client.KLINE_INTERVAL_1WEEK
 
-    global klines
-    klines = []
-    klines = client.get_klines(symbol=coin, interval=kinterval)
-    klines = klines[::-1]
+    exchange_info = client.get_exchange_info()
+
+    pool = Pool(pool_size)
+
+    symbols = []
+    for item in exchange_info['symbols']:
+        if str(item['quoteAsset']) == "USDT" or str(item['baseAsset']) == "USDT":
+            symbols.append(item['symbol'])
+    for item in symbols[:1200]:
+        pool.apply_async(worker, (item,kinterval))
+
+    pool.close()
+    pool.join()
 
     coin_price = []
 
-    for i in range(0,12):
-        coin_data = dict()
-        coin_data['TimeStamp'] = datetime.datetime.fromtimestamp(klines[i][0] / 1000.0).strftime("%b %d %Y %H:%M:%S")
-        coin_data['Price'] = klines[i][1]
-        coin_price.append(coin_data)
+
+    try:
+
+        for i in range(0, len(crypto_list)):
+            coin_data = dict()
+            coin_data['Coin'] = crypto_list[i]['Coin']
+            coin_data['DMA_7'] = crypto_list[i]['DMA_7']
+            coin_data['DMA_25'] = crypto_list[i]['DMA_25']
+            coin_price.append(coin_data)
 
 
 
+
+    except:
+        pass
+    print(coin_price)
     return JsonResponse({'msg':'Success','coin_prices':coin_price})
 
 
 def load_more(request,num_posts):
-    global klines
+    global crypto_list
 
 
     lower =num_posts
@@ -115,9 +141,10 @@ def load_more(request,num_posts):
     try:
         for i in range(lower, upper):
             coin_data = dict()
-            coin_data['TimeStamp'] = datetime.datetime.fromtimestamp(klines[i][0] / 1000.0).strftime(
-                "%b %d %Y %H:%M:%S")
-            coin_data['Price'] = klines[i][1]
+            coin_data['Coin'] = crypto_list[i]['Coin']
+            coin_data['DMA_7'] = crypto_list[i]['DMA_7']
+            coin_data['DMA_25'] = crypto_list[i]['DMA_25']
+
             posts.append(coin_data)
     except:
         pass
