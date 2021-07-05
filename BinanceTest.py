@@ -15,14 +15,19 @@ one_week_ago = datetime.datetime.today().date() - datetime.timedelta(days=7)
 one_week_ago = one_week_ago.strftime("%d %b, %Y")
 days_25_ago = datetime.datetime.today().date() - datetime.timedelta(days=25)
 days_25_ago = days_25_ago.strftime("%d %b, %Y")
-klines = client.get_historical_klines("DOGEUSDT", Client.KLINE_INTERVAL_4HOUR, one_week_ago,today_date)
-klines1 = client.get_historical_klines("DOGEUSDT", Client.KLINE_INTERVAL_4HOUR, days_25_ago)
+klines = client.get_historical_klines("DOGEUSDT", Client.KLINE_INTERVAL_1WEEK, one_week_ago)
+klines1 = client.get_historical_klines("DOGEUSDT", Client.KLINE_INTERVAL_1WEEK, days_25_ago)
+print(len(klines1))
+print(len(klines))
 seven_day_avg = 0
 twentyfive_day_avg = 0
 
 daily_lines = []
+
 for line in klines:
     daily_lines.append(float(line[4]))
+
+print(daily_lines)
 df = pandas.DataFrame({"Data":daily_lines})
-print(df.Data.rolling(window=25).mean().iloc[-1])
+print(df.Data.rolling(window=25).mean())
 

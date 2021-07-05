@@ -25,37 +25,55 @@ crypto_list = []
 def worker(item,kinterval):
 
     try:
+        global crypto_list
         if str(item).find('USDT')  != -1:
+            if kinterval == Client.KLINE_INTERVAL_1WEEK:
+                klines = client.get_historical_klines(item, Client.KLINE_INTERVAL_1DAY, one_week_ago)
+                klines1 = client.get_historical_klines(item, Client.KLINE_INTERVAL_1DAY, days_25_ago)
+                seven_day_avg = 0
+                twentyfive_day_avg = 0
+                np_klines = np.array(klines).astype(float)
+                if not np.any(np.isnan(np_klines)):
+                    seven_day_avg = np.mean(np_klines, axis=0)
 
-            klines = client.get_historical_klines(item, kinterval, one_week_ago)
-            klines1 = client.get_historical_klines(item, kinterval, days_25_ago)
-            seven_day_avg = 0
-            twentyfive_day_avg= 0
+                np_klines1 = np.array(klines1).astype(float)
+                if not np.any(np.isnan(np_klines1)):
+                    twentyfive_day_avg = np.mean(np_klines1, axis=0)
 
-            daily_lines = []
-            for line in klines:
-                daily_lines.append(float(line[4]))
-            df = pandas.DataFrame({"Data": daily_lines})
-            seven_day_avg = df.Data.rolling(window=7).mean().iloc[-1]
+                if seven_day_avg[4] > twentyfive_day_avg[4]:
 
-            daily_lines1 = []
-            for line in klines1:
-                daily_lines1.append(float(line[4]))
-            df = pandas.DataFrame({"Data": daily_lines1})
-            twentyfive_day_avg = df.Data.rolling(window=25).mean().iloc[-1]
+                    crypto_list.append({
+                        'Coin': item,
+                        'DMA_7': seven_day_avg[4],
+                        'DMA_25': twentyfive_day_avg[4]
+                    })
+
+            else:
+                klines = client.get_historical_klines(item, kinterval, one_week_ago)
+                klines1 = client.get_historical_klines(item, kinterval, days_25_ago)
+                seven_day_avg = 0
+                twentyfive_day_avg = 0
+                daily_lines = []
+                for line in klines:
+                    daily_lines.append(float(line[4]))
+                df = pandas.DataFrame({"Data": daily_lines})
+                seven_day_avg = df.Data.rolling(window=7).mean().iloc[-1]
+
+                daily_lines1 = []
+                for line in klines1:
+                    daily_lines1.append(float(line[4]))
+                df = pandas.DataFrame({"Data": daily_lines1})
+
+                twentyfive_day_avg = df.Data.rolling(window=25).mean().iloc[-1]
 
 
-            global crypto_list
 
-
-            if seven_day_avg > twentyfive_day_avg:
-
-
-                crypto_list.append({
-                    'Coin':item,
-                    'DMA_7':seven_day_avg,
-                    'DMA_25':twentyfive_day_avg
-                })
+                if seven_day_avg > twentyfive_day_avg:
+                    crypto_list.append({
+                        'Coin': item,
+                        'DMA_7': seven_day_avg,
+                        'DMA_25': twentyfive_day_avg
+                    })
 
     except Exception as e:
         pass
