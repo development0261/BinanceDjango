@@ -102,8 +102,6 @@ def get_coin_price(request):
     symbols = []
     for item in symbols_fetched[:900]:
         if str(item['symbol'])[-4:] == "USDT":
-            if(item['symbol'] == 'DOGEUSDT'):
-                print("DOGE")
             symbols.append(item['symbol'])
     for item in symbols:
         pool.apply_async(worker, (item,kinterval))
