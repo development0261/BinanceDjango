@@ -3,6 +3,7 @@ from binance import Client
 from django.http import JsonResponse
 from django.shortcuts import render
 import numpy as np
+import pandas
 from multiprocessing.pool import ThreadPool as Pool
 import time
 pool_size = 8
@@ -30,60 +31,44 @@ def worker(item,kinterval):
             klines1 = client.get_historical_klines(item, kinterval, days_25_ago)
             seven_day_avg = 0
             twentyfive_day_avg= 0
-            np_klines = np.array(klines).astype(float)
-            if not np.any(np.isnan(np_klines)):
-                seven_day_avg = np.mean(np_klines, axis=0)
 
+            daily_lines = []
+            for line in klines:
+                daily_lines.append(float(line[4]))
+            df = pandas.DataFrame({"Data": daily_lines})
+            seven_day_avg = df.Data.rolling(window=7).mean().iloc[-1]
 
-            np_klines1 = np.array(klines1).astype(float)
-            if not np.any(np.isnan(np_klines1)):
-                twentyfive_day_avg = np.mean(np_klines1, axis=0)
+            daily_lines1 = []
+            for line in klines1:
+                daily_lines1.append(float(line[4]))
+            df = pandas.DataFrame({"Data": daily_lines1})
+            twentyfive_day_avg = df.Data.rolling(window=25).mean().iloc[-1]
 
 
             global crypto_list
 
 
-            if seven_day_avg[4] > twentyfive_day_avg[4]:
+            if seven_day_avg > twentyfive_day_avg:
 
 
                 crypto_list.append({
                     'Coin':item,
-                    'DMA_7':seven_day_avg[4],
-                    'DMA_25':twentyfive_day_avg[4]
+                    'DMA_7':seven_day_avg,
+                    'DMA_25':twentyfive_day_avg
                 })
 
     except Exception as e:
         pass
 
 def index(request):
-
     return render(request,"index.html")
 
-# def get_coins(request):
-#     exchange_info = client.get_exchange_info()
-#
-#     pool = Pool(pool_size)
-#     print(exchange_info['symbols'][0])
-#     symbols = []
-#     for item in exchange_info['symbols']:
-#         if str(item['quoteAsset']) == "USDT" or str(item['baseAsset']) == "USDT":
-#             symbols.append(item['symbol'])
-#     for item in symbols[:800]:
-#         pool.apply_async(worker, (item,))
-#
-#
-#     pool.close()
-#     pool.join()
-#
-#     return JsonResponse({'msg':"Success","coins":crypto_list})
+
 
 def get_coin_price(request):
-
     global crypto_list
-
     crypto_list = []
     interval = request.POST['interval']
-
     kinterval = ''
     if interval == "1Hour":
         kinterval = Client.KLINE_INTERVAL_1HOUR
@@ -92,26 +77,21 @@ def get_coin_price(request):
     elif interval == "1Day":
         kinterval = Client.KLINE_INTERVAL_1DAY
     elif interval == "1Week":
-
         kinterval = Client.KLINE_INTERVAL_1WEEK
-
-    exchange_info = client.get_exchange_info()
-
+    symbols_fetched = client.get_all_tickers()
+    print(len(symbols_fetched))
     pool = Pool(pool_size)
-
     symbols = []
-    for item in exchange_info['symbols'][:900]:
-        if str(item['quoteAsset']) == "USDT" or str(item['baseAsset']) == "USDT":
+    for item in symbols_fetched:
+        if str(item['symbol'])[-4:] == "USDT":
+            if(item['symbol'] == 'DOGEUSDT'):
+                print("DOGE")
             symbols.append(item['symbol'])
     for item in symbols:
         pool.apply_async(worker, (item,kinterval))
-
     pool.close()
     pool.join()
-
     coin_price = []
-
-
     try:
 
         for i in range(0, len(crypto_list)):
@@ -120,13 +100,9 @@ def get_coin_price(request):
             coin_data['DMA_7'] = crypto_list[i]['DMA_7']
             coin_data['DMA_25'] = crypto_list[i]['DMA_25']
             coin_price.append(coin_data)
-
-
-
-
     except:
         pass
-    print(coin_price)
+
     return JsonResponse({'msg':'Success','coin_prices':coin_price})
 
 
