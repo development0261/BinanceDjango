@@ -6,7 +6,7 @@ import numpy as np
 import pandas
 from multiprocessing.pool import ThreadPool as Pool
 import time
-pool_size = 8
+pool_size = 10
 
 
 
@@ -82,7 +82,7 @@ def get_coin_price(request):
     print(len(symbols_fetched))
     pool = Pool(pool_size)
     symbols = []
-    for item in symbols_fetched:
+    for item in symbols_fetched[:900]:
         if str(item['symbol'])[-4:] == "USDT":
             if(item['symbol'] == 'DOGEUSDT'):
                 print("DOGE")
