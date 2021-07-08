@@ -6,7 +6,7 @@ import numpy as np
 import pandas
 from multiprocessing.pool import ThreadPool as Pool
 import time
-pool_size = 15
+pool_size = 20
 
 
 
