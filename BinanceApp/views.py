@@ -113,7 +113,7 @@ def get_coin_price(request):
 
     pool = Pool(pool_size)
     symbols = []
-    for item in symbols_fetched[:900]:
+    for item in symbols_fetched:
         if str(item['symbol'])[-4:] == "USDT":
             symbols.append(item['symbol'])
     for item in symbols:
