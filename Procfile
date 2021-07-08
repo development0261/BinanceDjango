@@ -1,1 +1,1 @@
-web: gunicorn BinanceDjango.wsgi --log-file -
+web: gunicorn BinanceDjango.wsgi --log-file - --timeout 40 --keep-alive 5 --log-level debug

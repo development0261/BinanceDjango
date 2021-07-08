@@ -49,8 +49,8 @@ def worker(item,kinterval):
                     twentyfive_day_avg = df.Data.rolling(window=25).mean().iloc[-1]
                     twentyfive_day_avg0 = df.Data.rolling(window=25).mean().iloc[-2]
 
-                    print(twentyfive_day_avg0, twentyfive_day_avg)
-                    print(seven_day_avg0, seven_day_avg)
+                    # print(twentyfive_day_avg0, twentyfive_day_avg)
+                    # print(seven_day_avg0, seven_day_avg)
 
                     if seven_day_avg > twentyfive_day_avg and seven_day_avg0 < twentyfive_day_avg0:
                         crypto_list.append({
@@ -78,8 +78,8 @@ def worker(item,kinterval):
                     twentyfive_day_avg = df.Data.rolling(window=25).mean().iloc[-1]
                     twentyfive_day_avg0 = df.Data.rolling(window=25).mean().iloc[-2]
 
-                    print(twentyfive_day_avg0, twentyfive_day_avg)
-                    print(seven_day_avg0, seven_day_avg)
+                    # print(twentyfive_day_avg0, twentyfive_day_avg)
+                    # print(seven_day_avg0, seven_day_avg)
 
                     if seven_day_avg > twentyfive_day_avg and seven_day_avg0 < twentyfive_day_avg0:
                         crypto_list.append({
